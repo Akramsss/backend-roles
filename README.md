@@ -1,5 +1,3 @@
-# backend-roles
-
 # PromoDZ Backend API Documentation
 
 > **Complete Technical Specification for Backend Development**
@@ -17,13 +15,14 @@
 5. [Database Schema](#5-database-schema)
 6. [API Endpoints](#6-api-endpoints)
 7. [Real-Time Features (WebSocket)](#7-real-time-features-websocket)
-8. [Recommendation Engine](#8-recommendation-engine)
-9. [File Upload System](#9-file-upload-system)
-10. [Email Notification System](#10-email-notification-system)
-11. [Search & Filtering](#11-search--filtering)
-12. [Business Rules & Validation](#12-business-rules--validation)
-13. [Error Handling](#13-error-handling)
-14. [Security Considerations](#14-security-considerations)
+8. [Analytics & Tracking System](#8-analytics--tracking-system)
+9. [Recommendation Engine](#9-recommendation-engine)
+10. [File Upload System](#10-file-upload-system)
+11. [Email Notification System](#11-email-notification-system)
+12. [Search & Filtering](#12-search--filtering)
+13. [Business Rules & Validation](#13-business-rules--validation)
+14. [Error Handling](#14-error-handling)
+15. [Security Considerations](#15-security-considerations)
 
 ---
 
@@ -190,8 +189,6 @@ backend/
 │  - Browse all active promotions                             │
 │  - Like promotions                                          │
 │  - Follow companies                                         │
-│  - Search & filter                                          │
-│  - View company pages                                       │
 │  - Manage profile & preferences                             │
 └─────────────────────────────────────────────────────────────┘
                               │
@@ -199,34 +196,35 @@ backend/
 ┌─────────────────────────────────────────────────────────────┐
 │                          GUEST                              │
 │  - Browse active promotions (read-only)                     │
-│  - after he sign if can access the link                     │
-│  - after sign in he can View company pages                  │
+│  - Search & filter                                          │
+│  - View company pages                                       │
 │  - Contact form                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 ### 3.2 Permission Matrix
 
-| Action                 | Guest | User | Company | Moderator    | Superadmin |
-| ---------------------- | ----- | ---- | ------- | ------------ | ---------- |
-| View active promotions | ✅     | ✅    | ✅       | ✅            | ✅          |
-| Search promotions      | ❌     | ✅    | ✅       | ✅            | ✅          |
-| Like promotions        | ❌     | ✅    | ❌       | ❌            | ❌          |
-| Follow companies       | ❌     | ✅    | ❌       | ❌            | ❌          |
-| View own favorites     | ❌     | ✅    | ❌       | ❌            | ❌          |
-| Add promotions         | ❌     | ❌    | ✅*      | ✅**          | ✅          |
-| Edit promotions        | ❌     | ❌    | ✅*      | ✅**          | ✅          |
-| Delete promotions      | ❌     | ❌    | ✅*      | ✅**          | ✅          |
-| View company analytics | ❌     | ❌    | ✅ (own) | ✅ (assigned) | ✅ (all)    |
-| Manage company profile | ❌     | ❌    | ✅       | ✅**          | ✅          |
-| Create companies       | ❌     | ❌    | ❌       | ✅needPermisio| ✅          |
-| Edit companies time    | ❌     | ❌    | ❌       | ✅needPermisio| ✅          |
-| Create moderators      | ❌     | ❌    | ❌       | ❌            | ✅          |
-| Manage site content    | ❌     | ❌    | ❌       | ❌            | ✅          |
-| View deleted users     | ❌     | ❌    | ❌       | ❌            | ✅          |
+| Action | Guest | User | Company | Moderator | Superadmin |
+|--------|-------|------|---------|-----------|------------|
+| View active promotions | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Search promotions | ❌ | ✅ | ✅ | ✅ | ✅ |
+| Like promotions | ❌ | ✅ | ❌ | ❌ | ❌ |
+| Follow companies | ❌ | ✅ | ❌ | ❌ | ❌ |
+| View own favorites | ❌ | ✅ | ❌ | ❌ | ❌ |
+| Add promotions | ❌ | ❌ | ✅* | ✅** | ✅ |
+| Edit promotions | ❌ | ❌ | ✅* | ✅** | ✅ |
+| Delete promotions | ❌ | ❌ | ✅* | ✅** | ✅ |
+| View company analytics | ❌ | ❌ | ✅ (own) | ✅ (assigned) | ✅ (all) |
+| Manage company profile | ❌ | ❌ | ✅ | ✅** | ✅ |
+| Create companies | ❌ | ❌ | ❌ | ✅*** | ✅ |
+| Edit companies subscription time | ❌ | ❌ | ❌ | ✅*** | ✅ |
+| Create moderators | ❌ | ❌ | ❌ | ❌ | ✅ |
+| Manage site content | ❌ | ❌ | ❌ | ❌ | ✅ |
+| View deleted users | ❌ | ❌ | ❌ | ❌ | ✅ |
 
 > `*` = Subject to subscription status and pause state
-> `**` = Subject to per-company permission assignment
+> `**` = Subject to per-company permission assignment (canAdd, canEdit, canDelete)
+> `***` = Subject to moderator-level permission (canAddCompany, canEditTimeCompany)
 
 ### 3.3 Superadmin Constraints
 
@@ -421,14 +419,13 @@ Reject login with appropriate error messages when:
 │ role            │       │ postalCode      │       │ endDate         │
 │ emailVerified   │       │ rc              │       │ likes           │
 │ interests[]     │       │ companyLink     │       │ clicks          │
-│ createdAt       │       │ image           │       │                 │
-│ isDeleted       │       │ subscriptionId  │       │                 │
-│                 │       │ subscriptionPlan│       │ images[]        │
-│ deletedAt       │       │ subscribeStart  │       │ createdAt       │
-│ deletedById     │       │ subscribeEnd    │       │ isDeleted       │
-│ anonymizedData  │       │                 │       │ deletedAt       │
-└────────┬────────┘       │ canAdd          │       │ deletedById     │
-         │                │ canEdit         │       └─────────────────┘
+│ createdAt       │       │ image           │       │ images[]        │
+│ isDeleted       │       │ subscriptionId  │       │ createdAt       │
+│ deletedAt       │       │ subscriptionPlan│       │ isDeleted       │
+│ deletedById     │       │ subscribeStart  │       │ deletedAt       │
+│ anonymizedData  │       │ subscribeEnd    │       │ deletedById     │
+└────────┬────────┘       │ canAdd          │       └─────────────────┘
+         │                │ canEdit         │                │
          │                │ canDelete       │                │
          │                │ followers       │                │
          │                │ createdAt       │                │
@@ -466,10 +463,10 @@ Reject login with appropriate error messages when:
                                    │
                                    ▼
                           ┌──────────────────────┐
-                          │ModeratorCompany      │
+                          │  ModeratorCompany    │
                           ├──────────────────────┤
                           │ id (PK)              │
-                          │ moderatorId(Fk)      │
+                          │ moderatorId (FK)     │
                           │ companyId (FK)       │
                           │ canAddCompany        │
                           │ canEditTimeCompany   │
@@ -539,6 +536,7 @@ CREATE TABLE companies (
     subscription_end_date TIMESTAMP,
     
     -- Permissions & Status
+    is_paused BOOLEAN DEFAULT FALSE,
     can_add BOOLEAN DEFAULT TRUE,
     can_edit BOOLEAN DEFAULT TRUE,
     can_delete BOOLEAN DEFAULT TRUE,
@@ -593,15 +591,15 @@ CREATE TABLE moderator_companies (
     id SERIAL PRIMARY KEY,
     moderator_id INTEGER NOT NULL REFERENCES moderators(id) ON DELETE CASCADE,
     company_id INTEGER NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
-    -- permissions
-    can_edit_time BOOLEAN DEFAULT FALSE,
-    can_add_company BOOLEAN DEFAULT FALSE,
     
-    -- Per-company permissions
-
-    can_add BOOLEAN DEFAULT FALSE,
-    can_edit BOOLEAN DEFAULT FALSE,
-    can_delete BOOLEAN DEFAULT FALSE,
+    -- Moderator-level permissions (for company management)
+    can_add_company BOOLEAN DEFAULT FALSE,      -- Can create new companies
+    can_edit_time_company BOOLEAN DEFAULT FALSE, -- Can edit subscription dates
+    
+    -- Per-company promotion permissions
+    can_add BOOLEAN DEFAULT FALSE,    -- Can add promotions for this company
+    can_edit BOOLEAN DEFAULT FALSE,   -- Can edit promotions for this company
+    can_delete BOOLEAN DEFAULT FALSE, -- Can delete promotions for this company
     
     assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     assigned_by_id INTEGER REFERENCES users(id),
@@ -632,7 +630,6 @@ CREATE TABLE promotions (
     likes_count INTEGER DEFAULT 0,
     clicks_count INTEGER DEFAULT 0,
     views_count INTEGER DEFAULT 0,
-    rating DECIMAL(2, 1) DEFAULT 0,
     
     -- Soft delete
     is_deleted BOOLEAN DEFAULT FALSE,
@@ -1131,7 +1128,11 @@ model ModeratorCompany {
   moderatorId Int @map("moderator_id")
   companyId   Int @map("company_id")
   
-  // Per-company permissions
+  // Moderator-level permissions (for company management)
+  canAddCompany      Boolean @default(false) @map("can_add_company")
+  canEditTimeCompany Boolean @default(false) @map("can_edit_time_company")
+  
+  // Per-company promotion permissions
   canAdd    Boolean @default(false) @map("can_add")
   canEdit   Boolean @default(false) @map("can_edit")
   canDelete Boolean @default(false) @map("can_delete")
@@ -1168,7 +1169,6 @@ model Promotion {
   likesCount  Int @default(0) @map("likes_count")
   clicksCount Int @default(0) @map("clicks_count")
   viewsCount  Int @default(0) @map("views_count")
-  rating      Decimal @default(0) @db.Decimal(2, 1)
   
   // Soft delete
   isDeleted     Boolean   @default(false) @map("is_deleted")
@@ -1875,9 +1875,699 @@ module.exports = { setupSocketIO, emitAnalyticsUpdate };
 
 ---
 
-## 8. Recommendation Engine
+## 8. Analytics & Tracking System
 
-### 8.1 Overview
+This section explains exactly what data to track, how to calculate metrics, and how to present analytics to different user roles.
+
+### 8.1 Data Collection Overview
+
+#### 8.1.1 Events to Track
+
+| Event Type | Trigger | Data Collected | Who Can See |
+|------------|---------|----------------|-------------|
+| `view` | User opens promotion detail | promotion_id, user_id*, timestamp, location, device | Company, Moderator, Admin |
+| `click` | User clicks promotion link | promotion_id, user_id*, timestamp, location, device | Company, Moderator, Admin |
+| `like` | User likes a promotion | promotion_id, user_id, timestamp | Company, Moderator, Admin |
+| `unlike` | User unlikes a promotion | promotion_id, user_id, timestamp | Company, Moderator, Admin |
+| `follow` | User follows a company | company_id, user_id, timestamp | Company, Moderator, Admin |
+| `unfollow` | User unfollows a company | company_id, user_id, timestamp | Company, Moderator, Admin |
+| `search` | User performs search | query, user_id*, results_count, timestamp | Admin only |
+| `page_view` | User views company page | company_id, user_id*, timestamp, location | Company, Moderator, Admin |
+
+> `*` = Optional (null for guest users)
+
+#### 8.1.2 Location Data Sources
+
+Location is determined using **two sources**:
+
+1. **IP Geolocation** (for all users including guests)
+   - Use a service like MaxMind GeoIP2 or ip-api.com
+   - Provides: city, region, country
+   - Accuracy: City-level
+
+2. **User Profile City** (for registered users)
+   - From user registration data
+   - More accurate but only for logged-in users
+
+```javascript
+// src/services/location.service.js
+const geoip = require('geoip-lite');
+
+function getLocationFromIP(ipAddress) {
+  const geo = geoip.lookup(ipAddress);
+  if (!geo) return { city: 'Unknown', region: 'Unknown', country: 'Algeria' };
+  
+  return {
+    city: geo.city || 'Unknown',
+    region: geo.region || 'Unknown',
+    country: geo.country || 'Algeria'
+  };
+}
+
+function getLocationForAnalytics(req, user) {
+  // Prefer user profile city if logged in
+  if (user && user.city) {
+    return {
+      city: user.city,
+      region: null,
+      country: 'Algeria',
+      source: 'profile'
+    };
+  }
+  
+  // Fallback to IP geolocation
+  const ip = req.ip || req.headers['x-forwarded-for']?.split(',')[0];
+  const geoData = getLocationFromIP(ip);
+  return { ...geoData, source: 'ip' };
+}
+
+module.exports = { getLocationFromIP, getLocationForAnalytics };
+```
+
+### 8.2 Metrics Definitions & Calculations
+
+#### 8.2.1 Promotion-Level Metrics
+
+| Metric | Definition | Calculation | Storage |
+|--------|------------|-------------|---------|
+| **Views** | Number of times promotion was viewed | COUNT of `view` events | `promotions.views_count` |
+| **Clicks** | Number of times promotion link was clicked | COUNT of `click` events | `promotions.clicks_count` |
+| **Likes** | Number of users who liked | COUNT of `like` events (minus `unlike`) | `promotions.likes_count` |
+| **CTR** (Click-Through Rate) | Percentage of views that led to clicks | `(clicks / views) * 100` | Calculated on-the-fly |
+| **Engagement Rate** | Overall engagement | `((likes + clicks) / views) * 100` | Calculated on-the-fly |
+
+```javascript
+// Promotion metrics calculation
+function calculatePromotionMetrics(promotion, analyticsData) {
+  const views = promotion.viewsCount || 0;
+  const clicks = promotion.clicksCount || 0;
+  const likes = promotion.likesCount || 0;
+  
+  return {
+    views,
+    clicks,
+    likes,
+    ctr: views > 0 ? ((clicks / views) * 100).toFixed(2) : 0,
+    engagementRate: views > 0 ? (((likes + clicks) / views) * 100).toFixed(2) : 0
+  };
+}
+```
+
+#### 8.2.2 Company-Level Metrics
+
+| Metric | Definition | Calculation |
+|--------|------------|-------------|
+| **Total Views** | Sum of all promotion views | SUM of promotion views |
+| **Total Clicks** | Sum of all promotion clicks | SUM of promotion clicks |
+| **Total Likes** | Sum of all promotion likes | SUM of promotion likes |
+| **Followers** | Number of users following | COUNT of `user_following` records |
+| **Active Promotions** | Currently running promotions | COUNT where `start_date <= now <= end_date` |
+| **Average CTR** | Average click-through rate | AVG of all promotion CTRs |
+| **Top Performing** | Best promotion | MAX clicks or engagement |
+
+```javascript
+// Company dashboard metrics
+async function getCompanyDashboardMetrics(companyId) {
+  const company = await prisma.company.findUnique({
+    where: { id: companyId },
+    include: {
+      promotions: {
+        where: { isDeleted: false }
+      }
+    }
+  });
+  
+  const now = new Date();
+  const activePromotions = company.promotions.filter(
+    p => new Date(p.startDate) <= now && new Date(p.endDate) >= now
+  );
+  
+  const totalViews = company.promotions.reduce((sum, p) => sum + p.viewsCount, 0);
+  const totalClicks = company.promotions.reduce((sum, p) => sum + p.clicksCount, 0);
+  const totalLikes = company.promotions.reduce((sum, p) => sum + p.likesCount, 0);
+  
+  return {
+    overview: {
+      totalPromotions: company.promotions.length,
+      activePromotions: activePromotions.length,
+      totalViews,
+      totalClicks,
+      totalLikes,
+      followers: company.followersCount,
+      averageCTR: totalViews > 0 ? ((totalClicks / totalViews) * 100).toFixed(2) : 0
+    },
+    topPromotion: company.promotions
+      .sort((a, b) => b.clicksCount - a.clicksCount)[0] || null
+  };
+}
+```
+
+#### 8.2.3 Platform-Level Metrics (Admin Dashboard)
+
+| Metric | Definition | Calculation |
+|--------|------------|-------------|
+| **Total Users** | Registered users | COUNT of `users` where `is_deleted = false` |
+| **Total Companies** | Active companies | COUNT of `companies` where `is_deleted = false` |
+| **Total Promotions** | All promotions | COUNT of `promotions` where `is_deleted = false` |
+| **Active Promotions** | Currently running | COUNT where dates are valid |
+| **Daily Active Users** | Users active today | COUNT of unique user_ids in analytics today |
+| **New Users (period)** | Users registered in period | COUNT where `created_at` in range |
+| **Revenue** | Subscription revenue | SUM of subscription plan prices |
+
+### 8.3 Time-Series Data
+
+#### 8.3.1 Daily Aggregation
+
+Store daily aggregated stats for efficient querying:
+
+```javascript
+// Cron job to aggregate daily stats (run at midnight)
+// src/jobs/aggregate-daily-stats.js
+const cron = require('node-cron');
+
+cron.schedule('0 0 * * *', async () => {
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  yesterday.setHours(0, 0, 0, 0);
+  
+  const endOfYesterday = new Date(yesterday);
+  endOfYesterday.setHours(23, 59, 59, 999);
+  
+  // Get all promotions
+  const promotions = await prisma.promotion.findMany({
+    where: { isDeleted: false },
+    select: { id: true }
+  });
+  
+  for (const promo of promotions) {
+    // Count events for yesterday
+    const [views, clicks, likes] = await Promise.all([
+      prisma.promotionAnalytics.count({
+        where: {
+          promotionId: promo.id,
+          eventType: 'view',
+          createdAt: { gte: yesterday, lte: endOfYesterday }
+        }
+      }),
+      prisma.promotionAnalytics.count({
+        where: {
+          promotionId: promo.id,
+          eventType: 'click',
+          createdAt: { gte: yesterday, lte: endOfYesterday }
+        }
+      }),
+      prisma.promotionAnalytics.count({
+        where: {
+          promotionId: promo.id,
+          eventType: 'like',
+          createdAt: { gte: yesterday, lte: endOfYesterday }
+        }
+      })
+    ]);
+    
+    // Upsert daily stats
+    await prisma.promotionDailyStats.upsert({
+      where: {
+        promotionId_date: {
+          promotionId: promo.id,
+          date: yesterday
+        }
+      },
+      update: { views, clicks, likes },
+      create: {
+        promotionId: promo.id,
+        date: yesterday,
+        views,
+        clicks,
+        likes
+      }
+    });
+  }
+  
+  console.log('Daily stats aggregation completed');
+});
+```
+
+#### 8.3.2 Chart Data Format
+
+For frontend charts, return data in this format:
+
+```javascript
+// GET /api/company/analytics/chart?period=30d&metric=views
+
+// Response format for line/bar charts
+{
+  "period": "30d",
+  "metric": "views",
+  "data": [
+    { "date": "2026-01-12", "value": 145 },
+    { "date": "2026-01-13", "value": 203 },
+    { "date": "2026-01-14", "value": 178 },
+    // ... more days
+  ],
+  "summary": {
+    "total": 5234,
+    "average": 174.5,
+    "max": 312,
+    "min": 89,
+    "trend": "+12.5%" // vs previous period
+  }
+}
+```
+
+```javascript
+// Chart data service
+async function getChartData(companyId, metric, period) {
+  const days = period === '7d' ? 7 : period === '30d' ? 30 : 90;
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - days);
+  
+  const dailyStats = await prisma.promotionDailyStats.groupBy({
+    by: ['date'],
+    where: {
+      promotion: { companyId },
+      date: { gte: startDate }
+    },
+    _sum: {
+      views: true,
+      clicks: true,
+      likes: true
+    },
+    orderBy: { date: 'asc' }
+  });
+  
+  const metricKey = metric === 'views' ? 'views' : 
+                    metric === 'clicks' ? 'clicks' : 'likes';
+  
+  const data = dailyStats.map(stat => ({
+    date: stat.date.toISOString().split('T')[0],
+    value: stat._sum[metricKey] || 0
+  }));
+  
+  const values = data.map(d => d.value);
+  const total = values.reduce((a, b) => a + b, 0);
+  
+  return {
+    period,
+    metric,
+    data,
+    summary: {
+      total,
+      average: (total / days).toFixed(1),
+      max: Math.max(...values, 0),
+      min: Math.min(...values, 0)
+    }
+  };
+}
+```
+
+### 8.4 Geographic Analytics
+
+#### 8.4.1 Visitors by Region
+
+Track where users are coming from:
+
+```javascript
+// GET /api/company/analytics/geography
+
+async function getGeographicAnalytics(companyId, period = '30d') {
+  const days = period === '7d' ? 7 : period === '30d' ? 30 : 90;
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - days);
+  
+  // Get promotion IDs for this company
+  const promotions = await prisma.promotion.findMany({
+    where: { companyId },
+    select: { id: true }
+  });
+  const promotionIds = promotions.map(p => p.id);
+  
+  // Aggregate by city
+  const cityStats = await prisma.promotionAnalytics.groupBy({
+    by: ['city'],
+    where: {
+      promotionId: { in: promotionIds },
+      createdAt: { gte: startDate }
+    },
+    _count: { id: true }
+  });
+  
+  // Sort by count and calculate percentages
+  const total = cityStats.reduce((sum, c) => sum + c._count.id, 0);
+  const byCity = cityStats
+    .sort((a, b) => b._count.id - a._count.id)
+    .map(stat => ({
+      city: stat.city || 'Unknown',
+      count: stat._count.id,
+      percentage: ((stat._count.id / total) * 100).toFixed(1)
+    }));
+  
+  return {
+    period,
+    totalVisitors: total,
+    byCity: byCity.slice(0, 10), // Top 10 cities
+    topCity: byCity[0]?.city || 'N/A'
+  };
+}
+```
+
+**Response Example:**
+```json
+{
+  "period": "30d",
+  "totalVisitors": 12456,
+  "byCity": [
+    { "city": "Algiers", "count": 4523, "percentage": "36.3" },
+    { "city": "Oran", "count": 2134, "percentage": "17.1" },
+    { "city": "Constantine", "count": 1567, "percentage": "12.6" },
+    { "city": "Annaba", "count": 892, "percentage": "7.2" },
+    { "city": "Blida", "count": 756, "percentage": "6.1" }
+  ],
+  "topCity": "Algiers"
+}
+```
+
+### 8.5 Real-Time Tracking Implementation
+
+#### 8.5.1 Track View Event
+
+```javascript
+// POST /api/promotions/:id/view
+async function trackPromotionView(req, res) {
+  const { id } = req.params;
+  const userId = req.user?.id || null;
+  const location = getLocationForAnalytics(req, req.user);
+  
+  try {
+    // Record analytics event
+    await prisma.promotionAnalytics.create({
+      data: {
+        promotionId: parseInt(id),
+        eventType: 'view',
+        userId,
+        ipAddress: req.ip,
+        city: location.city,
+        region: location.region,
+        country: location.country,
+        userAgent: req.headers['user-agent'],
+        deviceType: getDeviceType(req.headers['user-agent'])
+      }
+    });
+    
+    // Increment counter (for quick access)
+    await prisma.promotion.update({
+      where: { id: parseInt(id) },
+      data: { viewsCount: { increment: 1 } }
+    });
+    
+    // Emit real-time update via WebSocket
+    const io = req.app.get('io');
+    const promotion = await prisma.promotion.findUnique({
+      where: { id: parseInt(id) },
+      select: { companyId: true, viewsCount: true, clicksCount: true, likesCount: true }
+    });
+    
+    io.to(`company:${promotion.companyId}`).emit('analytics:update', {
+      type: 'view',
+      promotionId: parseInt(id),
+      stats: {
+        views: promotion.viewsCount,
+        clicks: promotion.clicksCount,
+        likes: promotion.likesCount
+      },
+      timestamp: new Date().toISOString()
+    });
+    
+    res.status(200).json({ success: true });
+  } catch (error) {
+    console.error('Track view error:', error);
+    res.status(500).json({ error: 'Failed to track view' });
+  }
+}
+
+function getDeviceType(userAgent) {
+  if (!userAgent) return 'unknown';
+  if (/mobile/i.test(userAgent)) return 'mobile';
+  if (/tablet/i.test(userAgent)) return 'tablet';
+  return 'desktop';
+}
+```
+
+#### 8.5.2 Track Click Event
+
+```javascript
+// POST /api/promotions/:id/click
+async function trackPromotionClick(req, res) {
+  const { id } = req.params;
+  const userId = req.user?.id || null;
+  const location = getLocationForAnalytics(req, req.user);
+  
+  try {
+    await prisma.promotionAnalytics.create({
+      data: {
+        promotionId: parseInt(id),
+        eventType: 'click',
+        userId,
+        ipAddress: req.ip,
+        city: location.city,
+        region: location.region,
+        country: location.country,
+        userAgent: req.headers['user-agent'],
+        deviceType: getDeviceType(req.headers['user-agent'])
+      }
+    });
+    
+    await prisma.promotion.update({
+      where: { id: parseInt(id) },
+      data: { clicksCount: { increment: 1 } }
+    });
+    
+    // Also track in user behavior for recommendations
+    if (userId) {
+      const promotion = await prisma.promotion.findUnique({
+        where: { id: parseInt(id) },
+        include: { categories: true }
+      });
+      
+      await prisma.userBehavior.create({
+        data: {
+          userId,
+          promotionId: parseInt(id),
+          companyId: promotion.companyId,
+          interactionType: 'click'
+        }
+      });
+    }
+    
+    // Real-time WebSocket update
+    const io = req.app.get('io');
+    const promotion = await prisma.promotion.findUnique({
+      where: { id: parseInt(id) },
+      select: { companyId: true, viewsCount: true, clicksCount: true, likesCount: true }
+    });
+    
+    io.to(`company:${promotion.companyId}`).emit('analytics:update', {
+      type: 'click',
+      promotionId: parseInt(id),
+      stats: {
+        views: promotion.viewsCount,
+        clicks: promotion.clicksCount,
+        likes: promotion.likesCount
+      },
+      timestamp: new Date().toISOString()
+    });
+    
+    res.status(200).json({ success: true });
+  } catch (error) {
+    console.error('Track click error:', error);
+    res.status(500).json({ error: 'Failed to track click' });
+  }
+}
+```
+
+### 8.6 Dashboard Cards Data
+
+#### 8.6.1 Company Dashboard Cards
+
+The company dashboard displays these summary cards:
+
+```javascript
+// GET /api/company/dashboard
+async function getCompanyDashboard(companyId) {
+  const now = new Date();
+  const thirtyDaysAgo = new Date(now.setDate(now.getDate() - 30));
+  const sixtyDaysAgo = new Date(now.setDate(now.getDate() - 30));
+  
+  const company = await prisma.company.findUnique({
+    where: { id: companyId },
+    include: {
+      promotions: { where: { isDeleted: false } },
+      subscriptionPlan: true
+    }
+  });
+  
+  // Calculate current period stats
+  const currentPeriodStats = await prisma.promotionAnalytics.groupBy({
+    by: ['eventType'],
+    where: {
+      promotion: { companyId },
+      createdAt: { gte: thirtyDaysAgo }
+    },
+    _count: { id: true }
+  });
+  
+  // Calculate previous period for comparison
+  const previousPeriodStats = await prisma.promotionAnalytics.groupBy({
+    by: ['eventType'],
+    where: {
+      promotion: { companyId },
+      createdAt: { gte: sixtyDaysAgo, lt: thirtyDaysAgo }
+    },
+    _count: { id: true }
+  });
+  
+  const getCount = (stats, type) => 
+    stats.find(s => s.eventType === type)?._count.id || 0;
+  
+  const currentViews = getCount(currentPeriodStats, 'view');
+  const previousViews = getCount(previousPeriodStats, 'view');
+  const viewsTrend = previousViews > 0 
+    ? (((currentViews - previousViews) / previousViews) * 100).toFixed(1)
+    : 0;
+  
+  const currentClicks = getCount(currentPeriodStats, 'click');
+  const previousClicks = getCount(previousPeriodStats, 'click');
+  const clicksTrend = previousClicks > 0
+    ? (((currentClicks - previousClicks) / previousClicks) * 100).toFixed(1)
+    : 0;
+  
+  const activePromotions = company.promotions.filter(
+    p => new Date(p.startDate) <= new Date() && new Date(p.endDate) >= new Date()
+  ).length;
+  
+  return {
+    cards: [
+      {
+        title: 'Total Views',
+        value: company.promotions.reduce((sum, p) => sum + p.viewsCount, 0),
+        trend: `${viewsTrend >= 0 ? '+' : ''}${viewsTrend}%`,
+        trendDirection: viewsTrend >= 0 ? 'up' : 'down',
+        period: 'vs last 30 days'
+      },
+      {
+        title: 'Total Clicks',
+        value: company.promotions.reduce((sum, p) => sum + p.clicksCount, 0),
+        trend: `${clicksTrend >= 0 ? '+' : ''}${clicksTrend}%`,
+        trendDirection: clicksTrend >= 0 ? 'up' : 'down',
+        period: 'vs last 30 days'
+      },
+      {
+        title: 'Total Likes',
+        value: company.promotions.reduce((sum, p) => sum + p.likesCount, 0),
+        trend: null,
+        period: 'all time'
+      },
+      {
+        title: 'Followers',
+        value: company.followersCount,
+        trend: null,
+        period: 'total'
+      },
+      {
+        title: 'Active Promotions',
+        value: activePromotions,
+        subtitle: `of ${company.promotions.length} total`
+      }
+    ],
+    subscription: {
+      plan: company.subscriptionPlan?.name || 'Free',
+      startDate: company.subscriptionStart,
+      endDate: company.subscriptionEnd,
+      daysRemaining: company.subscriptionEnd 
+        ? Math.max(0, Math.ceil((new Date(company.subscriptionEnd) - new Date()) / (1000 * 60 * 60 * 24)))
+        : null
+    }
+  };
+}
+```
+
+#### 8.6.2 Admin Dashboard Cards
+
+```javascript
+// GET /api/admin/dashboard
+async function getAdminDashboard() {
+  const now = new Date();
+  const todayStart = new Date(now.setHours(0, 0, 0, 0));
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  
+  const [
+    totalUsers,
+    totalCompanies,
+    totalModerators,
+    totalPromotions,
+    newUsersToday,
+    newUsersMonth,
+    activePromotions
+  ] = await Promise.all([
+    prisma.user.count({ where: { isDeleted: false, role: 'user' } }),
+    prisma.company.count({ where: { isDeleted: false } }),
+    prisma.moderator.count({ where: { isDeleted: false } }),
+    prisma.promotion.count({ where: { isDeleted: false } }),
+    prisma.user.count({ where: { createdAt: { gte: todayStart } } }),
+    prisma.user.count({ where: { createdAt: { gte: thirtyDaysAgo } } }),
+    prisma.promotion.count({
+      where: {
+        isDeleted: false,
+        startDate: { lte: new Date() },
+        endDate: { gte: new Date() }
+      }
+    })
+  ]);
+  
+  // Platform-wide analytics
+  const platformViews = await prisma.promotionAnalytics.count({
+    where: {
+      eventType: 'view',
+      createdAt: { gte: thirtyDaysAgo }
+    }
+  });
+  
+  return {
+    cards: [
+      { title: 'Total Users', value: totalUsers, icon: 'users' },
+      { title: 'Total Companies', value: totalCompanies, icon: 'building' },
+      { title: 'Total Moderators', value: totalModerators, icon: 'shield' },
+      { title: 'Total Promotions', value: totalPromotions, icon: 'tag' },
+      { title: 'Active Promotions', value: activePromotions, icon: 'zap' },
+      { title: 'New Users (Today)', value: newUsersToday, icon: 'user-plus' },
+      { title: 'New Users (30 days)', value: newUsersMonth, icon: 'trending-up' },
+      { title: 'Platform Views (30d)', value: platformViews, icon: 'eye' }
+    ]
+  };
+}
+```
+
+### 8.7 Analytics Data Types Summary
+
+| Data Type | Storage Type | Example Values |
+|-----------|--------------|----------------|
+| `eventType` | VARCHAR(20) | 'view', 'click', 'like', 'unlike', 'follow', 'unfollow' |
+| `deviceType` | VARCHAR(20) | 'mobile', 'tablet', 'desktop', 'unknown' |
+| `city` | VARCHAR(100) | 'Algiers', 'Oran', 'Constantine' |
+| `region` | VARCHAR(100) | 'Algiers Province', 'Oran Province' |
+| `country` | VARCHAR(100) | 'Algeria' (default) |
+| `ipAddress` | VARCHAR(45) | '192.168.1.1', '2001:db8::1' (IPv6 support) |
+| `interactionType` | VARCHAR(30) | 'view', 'click', 'like', 'follow', 'search', 'time_spent' |
+| `counts` | INTEGER | 0 to unlimited |
+| `percentages` | DECIMAL(5,2) | 0.00 to 100.00 |
+| `timestamps` | TIMESTAMP | ISO 8601 format |
+
+---
+
+## 9. Recommendation Engine
+
+### 9.1 Overview
 
 The recommendation engine provides personalized promotion suggestions based on:
 1. **User Interests** (selected during registration)
@@ -1886,7 +2576,7 @@ The recommendation engine provides personalized promotion suggestions based on:
 4. **Browsing History** (implicit signals)
 5. **Recency** (prefer newer promotions)
 
-### 8.2 Algorithm
+### 9.2 Algorithm
 
 ```javascript
 // src/services/recommendation.service.js
@@ -1989,7 +2679,7 @@ async function getRecommendations(userId, limit = 20) {
 module.exports = { getRecommendations };
 ```
 
-### 8.3 Behavior Tracking Events
+### 9.3 Behavior Tracking Events
 
 Track these events to build user preferences:
 
@@ -2002,7 +2692,7 @@ Track these events to build user preferences:
 | Search | 0.2 | query, categories clicked |
 | Category Browse | 0.15 | category_id, time_spent |
 
-### 8.4 Preference Computation (Background Job)
+### 9.4 Preference Computation (Background Job)
 
 Run periodically (e.g., every 6 hours) using node-cron to update user preferences:
 
@@ -2136,7 +2826,7 @@ cron.schedule('0 */6 * * *', async () => {
 });
 ```
 
-### 8.5 API Response Format
+### 9.5 API Response Format
 
 ```json
 GET /api/users/me/recommendations/
@@ -2172,9 +2862,9 @@ Response:
 
 ---
 
-## 9. File Upload System
+## 10. File Upload System
 
-### 9.1 Storage Configuration
+### 10.1 Storage Configuration
 
 Files are stored on the **local filesystem** with the following structure:
 
@@ -2198,7 +2888,7 @@ Files are stored on the **local filesystem** with the following structure:
     └── {ad_id}.{ext}
 ```
 
-### 9.2 Upload Constraints
+### 10.2 Upload Constraints
 
 | Type | Max Size | Max Count | Allowed Formats |
 |------|----------|-----------|-----------------|
@@ -2207,7 +2897,7 @@ Files are stored on the **local filesystem** with the following structure:
 | Promotion Images | 2 MB each | 5 | JPG, PNG, WebP |
 | Ad Images | 5 MB | 1 | JPG, PNG, WebP, GIF |
 
-### 9.3 Upload Endpoint
+### 10.3 Upload Endpoint
 
 ```
 POST /api/upload/
@@ -2228,7 +2918,7 @@ Response:
 }
 ```
 
-### 9.4 Image Processing
+### 10.4 Image Processing
 
 - Resize large images to max 1920x1080 while maintaining aspect ratio
 - Generate thumbnails (300x300) for list views
@@ -2237,9 +2927,9 @@ Response:
 
 ---
 
-## 10. Email Notification System
+## 11. Email Notification System
 
-### 10.1 Transactional Emails
+### 11.1 Transactional Emails
 
 | Trigger | Recipient | Template |
 |---------|-----------|----------|
@@ -2253,9 +2943,9 @@ Response:
 | Company Paused | Company | Account paused notice |
 | Company Resumed | Company | Account resumed notice |
 
-### 10.2 Email Templates
+### 11.2 Email Templates
 
-#### 10.2.1 Verification Code Email
+#### 11.2.1 Verification Code Email
 
 ```
 Subject: PromoDZ - Your Verification Code
@@ -2272,7 +2962,7 @@ If you didn't request this code, please ignore this email.
 PromoDZ Team
 ```
 
-#### 10.2.2 New Promotion Notification (To Followers)
+#### 11.2.2 New Promotion Notification (To Followers)
 
 ```
 Subject: New Deal from {company_name}! 🎉
@@ -2291,7 +2981,7 @@ You're receiving this because you follow {company_name}.
 Unfollow to stop these notifications.
 ```
 
-#### 10.2.3 New Contact Message (To Admins)
+#### 11.2.3 New Contact Message (To Admins)
 
 ```
 Subject: [PromoDZ] New Contact Message from {sender_name}
@@ -2309,7 +2999,7 @@ Message:
 [View in Admin Panel]
 ```
 
-### 10.3 Email Configuration
+### 11.3 Email Configuration
 
 ```javascript
 // src/config/email.js
@@ -2348,9 +3038,9 @@ EMAIL_FROM=noreply@promodz.com
 
 ---
 
-## 11. Search & Filtering
+## 12. Search & Filtering
 
-### 11.1 Search Implementation
+### 12.1 Search Implementation
 
 The search must support **fuzzy matching** (typo tolerance). Options:
 
@@ -2410,7 +3100,7 @@ LIMIT 20;
 }
 ```
 
-### 11.2 Filter Parameters
+### 12.2 Filter Parameters
 
 ```python
 # All available filters
@@ -2428,7 +3118,7 @@ filters = {
 }
 ```
 
-### 11.3 Sorting Options
+### 12.3 Sorting Options
 
 | Sort Value | SQL Order |
 |------------|-----------|
@@ -2438,7 +3128,7 @@ filters = {
 | `discount` | `discount DESC` |
 | `popular` | `likes_count DESC, clicks_count DESC` |
 
-### 11.4 Search Response Format
+### 12.4 Search Response Format
 
 ```json
 {
@@ -2483,9 +3173,9 @@ filters = {
 
 ---
 
-## 12. Business Rules & Validation
+## 13. Business Rules & Validation
 
-### 12.1 Promotion Rules
+### 13.1 Promotion Rules
 
 | Rule | Validation |
 |------|------------|
@@ -2499,7 +3189,7 @@ filters = {
 | Start Date | Required, can be future (scheduled) |
 | End Date | Required, must be after start date |
 
-### 12.2 Company Rules
+### 13.2 Company Rules
 
 | Rule | Validation |
 |------|------------|
@@ -2511,7 +3201,7 @@ filters = {
 | Company Link | Optional, if provided must be valid and accessible URL |
 | City | Required |
 
-### 12.3 User Rules
+### 13.3 User Rules
 
 | Rule | Validation |
 |------|------------|
@@ -2522,7 +3212,7 @@ filters = {
 | Password | Required, min 8 characters, must contain uppercase, lowercase, number |
 | Interests | Optional, max 10 categories |
 
-### 12.4 Subscription Rules
+### 13.4 Subscription Rules
 
 1. **Subscription Expiry**:
    - Company can still view dashboard (read-only)
@@ -2540,7 +3230,7 @@ filters = {
    - If paused → all permissions false
    - If all permissions false → auto-pause
 
-### 12.5 URL Validation
+### 13.5 URL Validation
 
 The `companyLink` and promotion `link` fields must be validated:
 
@@ -2603,9 +3293,9 @@ module.exports = { validateUrl, isValidUrlFormat };
 
 ---
 
-## 13. Error Handling
+## 14. Error Handling
 
-### 13.1 Standard Error Response Format
+### 14.1 Standard Error Response Format
 
 ```json
 {
@@ -2620,7 +3310,7 @@ module.exports = { validateUrl, isValidUrlFormat };
 }
 ```
 
-### 13.2 Error Codes
+### 14.2 Error Codes
 
 | HTTP Status | Code | Description |
 |-------------|------|-------------|
@@ -2642,9 +3332,9 @@ module.exports = { validateUrl, isValidUrlFormat };
 
 ---
 
-## 14. Security Considerations
+## 15. Security Considerations
 
-### 14.1 Authentication Security
+### 15.1 Authentication Security
 
 - Use bcryptjs for password hashing (cost factor 12)
 - JWT tokens should expire (access: 15 min, refresh: 7 days)
@@ -2978,7 +3668,7 @@ const login = async (req, res) => {
 module.exports = { register, login };
 ```
 
-### 14.2 GDPR Compliance (Soft Delete & Anonymization)
+### 15.2 GDPR Compliance (Soft Delete & Anonymization)
 
 When a user requests deletion or admin deletes a user:
 
@@ -3074,7 +3764,7 @@ async function restoreUser(userId, restoredById) {
 module.exports = { softDeleteUser, restoreUser };
 ```
 
-### 14.3 Input Validation
+### 15.3 Input Validation
 
 - Sanitize all text inputs to prevent XSS
 - Validate file uploads (check magic bytes, not just extension)
@@ -3106,7 +3796,7 @@ const validate = (req, res, next) => {
 module.exports = { validate };
 ```
 
-### 14.4 API Security Headers
+### 15.4 API Security Headers
 
 ```javascript
 // src/app.js
@@ -3150,7 +3840,7 @@ const authLimiter = rateLimit({
 app.use('/api/auth/login', authLimiter);
 ```
 
-### 14.5 CORS Configuration
+### 15.5 CORS Configuration
 
 ```javascript
 // src/app.js
