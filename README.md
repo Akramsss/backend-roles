@@ -426,7 +426,7 @@ Reject login with appropriate error messages when:
 │                 │       │ subscriptionPlan│       │ images[]        │
 │ deletedAt       │       │ subscribeStart  │       │ createdAt       │
 │ deletedById     │       │ subscribeEnd    │       │ isDeleted       │
-│ anonymizedData  │       │ isPaused        │       │ deletedAt       │
+│ anonymizedData  │       │                 │       │ deletedAt       │
 └────────┬────────┘       │ canAdd          │       │ deletedById     │
          │                │ canEdit         │       └─────────────────┘
          │                │ canDelete       │                │
@@ -539,7 +539,6 @@ CREATE TABLE companies (
     subscription_end_date TIMESTAMP,
     
     -- Permissions & Status
-    is_paused BOOLEAN DEFAULT FALSE,
     can_add BOOLEAN DEFAULT TRUE,
     can_edit BOOLEAN DEFAULT TRUE,
     can_delete BOOLEAN DEFAULT TRUE,
@@ -594,8 +593,12 @@ CREATE TABLE moderator_companies (
     id SERIAL PRIMARY KEY,
     moderator_id INTEGER NOT NULL REFERENCES moderators(id) ON DELETE CASCADE,
     company_id INTEGER NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
+    -- permissions
+    can_edit_time BOOLEAN DEFAULT FALSE,
+    can_add_company BOOLEAN DEFAULT FALSE,
     
     -- Per-company permissions
+
     can_add BOOLEAN DEFAULT FALSE,
     can_edit BOOLEAN DEFAULT FALSE,
     can_delete BOOLEAN DEFAULT FALSE,
