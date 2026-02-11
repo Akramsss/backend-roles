@@ -219,11 +219,11 @@ backend/
 | Delete promotions      | ❌     | ❌    | ✅*      | ✅**          | ✅          |
 | View company analytics | ❌     | ❌    | ✅ (own) | ✅ (assigned) | ✅ (all)    |
 | Manage company profile | ❌     | ❌    | ✅       | ✅**          | ✅          |
-| Create companies       | ❌     | ❌    | ❌       | ❌            | ✅          |
+| Create companies       | ❌     | ❌    | ❌       | ✅needPermisio| ✅          |
+| Edit companies time    | ❌     | ❌    | ❌       | ✅needPermisio| ✅          |
 | Create moderators      | ❌     | ❌    | ❌       | ❌            | ✅          |
 | Manage site content    | ❌     | ❌    | ❌       | ❌            | ✅          |
 | View deleted users     | ❌     | ❌    | ❌       | ❌            | ✅          |
-| Restore deleted users  | ❌     | ❌    | ❌       | ❌            | ✅          |
 
 > `*` = Subject to subscription status and pause state
 > `**` = Subject to per-company permission assignment
