@@ -421,8 +421,9 @@ Reject login with appropriate error messages when:
 │ role            │       │ postalCode      │       │ endDate         │
 │ emailVerified   │       │ rc              │       │ likes           │
 │ interests[]     │       │ companyLink     │       │ clicks          │
-│ createdAt       │       │ image           │       │ rating          │
-│ isDeleted       │       │ subscriptionId  │       │ images[]        │
+│ createdAt       │       │ image           │       │                 │
+│ isDeleted       │       │ subscriptionId  │       │                 │
+│                 │       │ subscriptionPlan│       │ images[]        │
 │ deletedAt       │       │ subscribeStart  │       │ createdAt       │
 │ deletedById     │       │ subscribeEnd    │       │ isDeleted       │
 │ anonymizedData  │       │ isPaused        │       │ deletedAt       │
@@ -464,16 +465,18 @@ Reject login with appropriate error messages when:
                           └────────┬────────┘
                                    │
                                    ▼
-                          ┌─────────────────┐
-                          │ModeratorCompany │
-                          ├─────────────────┤
-                          │ id (PK)         │
-                          │ moderatorId(FK) │
-                          │ companyId (FK)  │
-                          │ canAdd          │
-                          │ canEdit         │
-                          │ canDelete       │
-                          └─────────────────┘
+                          ┌──────────────────────┐
+                          │ModeratorCompany      │
+                          ├──────────────────────┤
+                          │ id (PK)              │
+                          │ moderatorId(Fk)      │
+                          │ companyId (FK)       │
+                          │ canAddCompany        │
+                          │ canEditTimeCompany   │
+                          │ canAdd               │
+                          │ canEdit              │
+                          │ canDelete            │
+                          └──────────────────────┘
 ```
 
 ### 5.2 Complete Table Definitions
